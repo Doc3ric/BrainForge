@@ -1,0 +1,42 @@
+name: BrainForge CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+    - name: Install Dependencies
+      run: |
+        cd api
+        composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+    - name: Run Pint
+      run: cd api && ./vendor/bin/pint --test
+    - name: Run Larastan
+      run: cd api && ./vendor/bin/phpstan analyse --memory-limit=2G
+    - name: Run Pest
+      run: cd api && ./vendor/bin/pest
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install Dependencies
+      run: cd web && npm ci
+    - name: Run ESLint
+      run: cd web && npm run lint
+    - name: Build
+      run: cd web && npm run build

@@ -2,9 +2,9 @@
 
 > **Document Type:** Product Documentation
 > **Location:** `docs/product/FEATURES.md`
-> **Version:** 0.1.0
-> **Last Updated:** 2026-07-30
-> **Status:** Draft
+> **Version:** 0.1.1
+> **Last Updated:** 2026-07-30 (Amended & Frozen)
+> **Status:** Frozen
 > **Derived From:** `PRODUCT_REQUIREMENTS.md`
 
 ## Purpose
@@ -37,9 +37,26 @@ This document describes how every feature in BrainForge behaves from the user's 
 18. **Future Expansion**: Timed per-question countdowns, drag-and-drop question types, audio questions.
 19. **Out of Scope**: Adaptive difficulty (branching logic) during the quiz, multiplayer real-time battles.
 
+### Global Pagination & List UX Standard (NFR-SCALE-005)
+*This standard applies universally to all list-based views (Quiz Library, Progress History, Vocabulary List, Writing History, etc.).*
+1. **Feature Overview**: A unified approach to loading and rendering large datasets in the UI.
+2. **Functional Behavior**: All list views utilize an infinite-scroll "Load More" pattern. The frontend requests the next page when the user scrolls near the bottom of the list.
+3. **Data Constraints**: The default page size is 20 items. The maximum page size allowed by the backend is 100 items. Unpaginated list requests are strictly prohibited.
+4. **Loading States**: Initial load uses a skeleton grid/list matching the expected item count. Subsequent page loads display an inline spinner at the bottom of the list.
+5. **Empty States**: If the first page returns 0 items, a localized "No items found" message with a relevant call-to-action is displayed.
+6. **End-of-List Indicators**: When the final page is reached, the spinner is replaced by a subtle "You've reached the end" text indicator.
+
 ---
 
 ## 🔐 Core Platform
+
+### Global Navigation (FR-NAV-001)
+1. **Feature Overview**: The primary routing and layout scaffold for the application.
+2. **Desktop Hierarchy**: A persistent left-hand sidebar divided into logical groups: Core (Dashboard, Progress, Achievements), Learning (Vocabulary, Grammar, Reading, Writing, IELTS), Quizzes (Library, Builder), and Cognitive (IQ, Logic). Settings and Logout reside at the bottom.
+3. **Mobile Behavior**: The sidebar collapses into a hidden drawer accessible via a hamburger menu in the top navigation bar.
+4. **Active State**: The currently active route is visually highlighted in the sidebar (e.g., contrasting background color and bold text).
+5. **Authenticated vs. Unauthenticated**: The sidebar is only visible to authenticated users. Unauthenticated users see a minimalist top header with Login/Register links.
+6. **Accessibility**: All navigation items must be keyboard-focusable and include appropriate ARIA roles.
 
 ### Authentication (M-01)
 1. **Feature Overview**: User registration, login, logout, and session persistence.
@@ -99,7 +116,7 @@ This document describes how every feature in BrainForge behaves from the user's 
 13. **XP & Gamification**: Prominently displays Level and XP progress bar.
 14. **Achievement Integration**: Displays a notification/banner for recently unlocked achievements (past 24h).
 15. **Daily Goal Integration**: Prominent Daily Goals widget showing progress bars for today's targets.
-16. **Streak Integration**: Prominent Streak widget (flame icon + count).
+16. **Streak Integration**: Prominent Streak widget (flame icon + count + available freeze balance).
 17. **Dependencies**: Relies on Progress, XP, Streak, and Goal aggregation APIs.
 18. **Future Expansion**: Customizable widget layouts, recommended lessons AI widget.
 19. **Out of Scope**: Drag-and-drop dashboard customization.
@@ -156,8 +173,8 @@ This document describes how every feature in BrainForge behaves from the user's 
 3. **User Value**: Strong psychological motivator to return to the platform daily to avoid "breaking the streak."
 4. **Related Requirements**: FR-STREAK-001 to 007, BR-STREAK-001 to 008.
 5. **Entry Points**: Dashboard widget, Profile page.
-6. **User Journey**: User logs in -> Completes first activity of the day -> Streak increments -> Visual celebration (flame animation). User misses a day -> Streak breaks to 0 (unless freeze active).
-7. **Functional Behavior**: Listens for qualifying domain events (BR-STREAK-007). Checks if activity already occurred today (in configured timezone). If not, increments streak. At 00:00 local time, evaluates if previous day was missed.
+6. **User Journey**: User logs in -> Completes first activity -> Streak increments -> Visual celebration. User unlocks a milestone achievement -> Earns a Streak Freeze -> Toast notification appears. User misses a day -> Streak Freeze is automatically consumed -> Notification warns user upon next login -> Streak is maintained. If no freeze is available -> Streak breaks to 0.
+7. **Functional Behavior**: Listens for qualifying domain events (BR-STREAK-007). Increments streak if no activity occurred today. Evaluates missed days at 00:00 local time. Automatically consumes a freeze from the balance (calculated as grants minus consumptions) if a day is missed.
 8. **Validation Rules**: Only qualifying activities (BR-STREAK-007) increment the streak.
 9. **Empty States**: Streak = 0.
 10. **Loading States**: N/A.
@@ -166,7 +183,7 @@ This document describes how every feature in BrainForge behaves from the user's 
 13. **XP & Gamification**: Integrates closely with XP visual feedback.
 14. **Achievement Integration**: Emits `StreakIncremented` event; triggers streak-based achievements (e.g., "7 Day Streak").
 15. **Daily Goal Integration**: Completing a daily goal is often a qualifying streak activity.
-16. **Streak Integration**: *Core feature.*
+16. **Streak Integration**: *Core feature.* The available freeze balance is tracked globally and displayed on the Dashboard widget. Freezes are explicitly earned via specific milestone achievements.
 17. **Dependencies**: User's timezone setting.
 18. **Future Expansion**: Streak repair (purchasing a missed day repair).
 19. **Out of Scope**: Buying streak freezes with real money.
@@ -225,7 +242,7 @@ This document describes how every feature in BrainForge behaves from the user's 
 9. **Empty States**: "Not enough data yet" for charts if user has < 2 days of activity.
 10. **Loading States**: Chart skeleton loaders.
 11. **Error States**: "Failed to load chart data."
-12. **Edge Cases**: Extremely high volume of `xp_logs` (queries must be optimized or cached to meet 500ms NFR).
+12. **Edge Cases**: Extremely high volume of `xp_logs` (queries must be optimized or cached to meet 500ms NFR). Historical attempts linked to soft-deleted content (e.g., a deleted quiz or retired grammar topic) are rendered as "[Deleted Content] - Score: X". Action buttons like "Retake" or "Review" are disabled for soft-deleted entities to preserve historical accuracy without breaking UX.
 13. **XP & Gamification**: Visualizes XP history.
 14. **Achievement Integration**: None directly.
 15. **Daily Goal Integration**: Shows historical goal completion chart.
@@ -380,7 +397,7 @@ This document describes how every feature in BrainForge behaves from the user's 
 9. **Empty States**: "You haven't created any custom quizzes yet."
 10. **Loading States**: Inline spinners when adding/deleting questions.
 11. **Error States**: "Validation failed: A question must have at least 2 options."
-12. **Edge Cases**: User deletes a question while an attempt is in progress (the session Engine operates on a snapshot taken at start; deletion doesn't break the active session).
+12. **Edge Cases**: User deletes a question while an attempt is in progress (the session Engine operates on a snapshot taken at start; deletion doesn't break the active session). Soft-deleted quizzes remain in the database for historical progress integrity but are hidden from the active library.
 13. **XP & Gamification**: Attempting custom quizzes awards XP (handled by Quiz Engine).
 14. **Achievement Integration**: Attempting triggers Quiz Engine achievements. Creating quizzes triggers builder achievements.
 15. **Daily Goal Integration**: Attempts trigger goal progress.

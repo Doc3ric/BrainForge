@@ -1,0 +1,12 @@
+# Root
+.idea/
+.vscode/
+.env
+.env.*.local
+scratch/
+node_modules/
+vendor/
+
+# OS generated files
+.DS_Store
+Thumbs.db
