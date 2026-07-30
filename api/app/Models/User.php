@@ -20,6 +20,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens, HasUuids;
 
     /**
+     * Generate a new UUIDv7 for the model.
+     */
+    public function newUniqueId(): string
+    {
+        return (string) \Symfony\Component\Uid\Uuid::v7();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

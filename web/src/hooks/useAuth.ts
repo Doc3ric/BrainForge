@@ -5,14 +5,13 @@ import toast from 'react-hot-toast';
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-  const setLoading = useAuthStore((state) => state.setLoading);
+  const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
 
   const loginMutation = useMutation({
     mutationFn: authService.login.bind(authService),
-    onSuccess: (response: { data: import('@/stores/auth.store').User }) => {
-      setAuth(response.data);
+    onSuccess: () => {
+      setAuthenticated(true);
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
       toast.success('Logged in successfully!');
     },
     onError: (error: unknown) => {
@@ -35,7 +34,7 @@ export const useAuth = () => {
   const logoutMutation = useMutation({
     mutationFn: authService.logout.bind(authService),
     onSuccess: () => {
-      clearAuth();
+      setAuthenticated(false);
       queryClient.clear();
       toast.success('Logged out successfully');
     },
@@ -44,23 +43,19 @@ export const useAuth = () => {
     },
   });
 
-  // Query to fetch current user on initial load
   const { data: userResponse, isLoading: isUserLoading } = useQuery({
     queryKey: ['authUser'],
     queryFn: async () => {
-      setLoading(true);
       try {
         const res = await authService.getCurrentUser();
-        setAuth(res.data);
+        setAuthenticated(true);
         return res;
       } catch (error) {
-        clearAuth();
+        setAuthenticated(false);
         throw error;
-      } finally {
-        setLoading(false);
       }
     },
-    retry: false, // Don't retry if unauthenticated
+    retry: false,
     refetchOnWindowFocus: false,
   });
 
@@ -68,7 +63,7 @@ export const useAuth = () => {
     loginMutation,
     registerMutation,
     logoutMutation,
-    userResponse,
+    user: userResponse?.data ?? null,
     isUserLoading
   };
 };
