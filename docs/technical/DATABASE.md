@@ -43,7 +43,7 @@ The database follows a star-like schema radiating from the `users` table.
 3.  **Module Content**: Specific tables for Vocabulary, Grammar, Reading, Writing, IQ, Logic.
 
 ## 7. Complete Entity Inventory
-`users`, `difficulty_levels`, `xp_activity_types`, `xp_logs`, `achievements`, `user_achievements`, `streak_freeze_log`, `daily_goal_tracking`, `vocabulary_categories`, `vocabulary_words`, `vocabulary_examples`, `user_vocabulary`, `grammar_topics`, `grammar_exercises`, `user_grammar_progress`, `reading_passages`, `reading_questions`, `user_reading_progress`, `writing_prompts`, `writing_submissions`, `quizzes`, `quiz_questions`, `quiz_sessions`, `quiz_session_answers`, `iq_exercises`, `logic_exercises`. Total: 26 tables.
+`users`, `difficulty_levels`, `xp_activity_types`, `xp_logs`, `achievements`, `user_achievements`, `streak_freeze_log`, `daily_goal_tracking`, `vocabulary_categories`, `vocabulary_words`, `vocabulary_examples`, `user_vocabulary`, `vocabulary_study_sessions`, `vocabulary_study_session_words`, `vocabulary_review_logs`, `grammar_topics`, `grammar_exercises`, `user_grammar_progress`, `reading_passages`, `reading_questions`, `user_reading_progress`, `writing_prompts`, `writing_submissions`, `quizzes`, `quiz_questions`, `quiz_sessions`, `quiz_session_answers`, `iq_exercises`, `logic_exercises`. Total: 29 tables.
 
 ## 8. Detailed Table Specifications
 *The detailed specifications are categorized by domain in sections 11 through 19 below. Every table includes PK/FK, types, nullability, constraints, and indexes.*
@@ -299,6 +299,40 @@ The database follows a star-like schema radiating from the `users` table.
 | `next_review_at` | TIMESTAMPTZ | NULLABLE |
 | `last_interacted_at`| TIMESTAMPTZ | NULLABLE |
 *Constraints*: UNIQUE (`user_id`, `vocabulary_word_id`)
+
+### `vocabulary_study_sessions`
+*Purpose: Track a user's study session for streak qualification.*
+| Column | Type | Constraints / Modifiers |
+|---|---|---|
+| `id` | UUID | PK (UUIDv7) |
+| `user_id` | UUID | FK (users), NOT NULL |
+| `status` | VARCHAR(20) | NOT NULL, CHECK (IN ('active', 'completed', 'abandoned')) |
+| `started_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
+| `completed_at` | TIMESTAMPTZ | NULLABLE |
+| `word_count` | INTEGER | NOT NULL, DEFAULT 0, CHECK (word_count >= 0) |
+| `created_at` | TIMESTAMPTZ | NOT NULL |
+| `updated_at` | TIMESTAMPTZ | NOT NULL |
+*Indexes*: `idx_vocab_study_sessions_user_id` (user_id), `idx_vocab_study_sessions_status` (user_id, status)
+
+### `vocabulary_study_session_words`
+*Purpose: Track individual words studied within a session.*
+| Column | Type | Constraints / Modifiers |
+|---|---|---|
+| `id` | UUID | PK (UUIDv7) |
+| `study_session_id` | UUID | FK (vocabulary_study_sessions), NOT NULL |
+| `vocabulary_word_id`| UUID | FK (vocabulary_words), NOT NULL |
+| `studied_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
+*Constraints*: UNIQUE (`study_session_id`, `vocabulary_word_id`)
+
+### `vocabulary_review_logs`
+*Purpose: Track SM-2 review history and enforce review idempotency.*
+| Column | Type | Constraints / Modifiers |
+|---|---|---|
+| `id` | UUID | PK (UUIDv7) |
+| `user_vocabulary_id` | UUID | FK (user_vocabulary), NOT NULL |
+| `idempotency_key` | UUID | UNIQUE, NOT NULL |
+| `quality_score` | INTEGER | NOT NULL, CHECK (quality_score BETWEEN 0 AND 5) |
+| `reviewed_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
 
 ---
 

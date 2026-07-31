@@ -2,8 +2,8 @@
 
 > **Document Type:** Product Documentation
 > **Location:** `docs/product/FEATURES.md`
-> **Version:** 0.1.1
-> **Last Updated:** 2026-07-30 (Amended & Frozen)
+> **Version:** 0.1.2
+> **Last Updated:** 2026-07-31 (Amended: Phase 4 Vocabulary)
 > **Status:** Frozen
 > **Derived From:** `PRODUCT_REQUIREMENTS.md`
 
@@ -262,8 +262,8 @@ This document describes how every feature in BrainForge behaves from the user's 
 4. **Related Requirements**: FR-VOC-001 to 012, BR-SR-001 to 004, BR-CONTENT-004 to 006.
 5. **Entry Points**: Dashboard quick-access card, Sidebar "Vocabulary" link.
 6. **User Journey**: User browses category -> Enters Study Mode -> Reads definition and examples -> Marks as "Learned". Later: User sees "10 Words Due for Review" -> Enters Review Mode -> Grades recall (0-5) -> SM-2 updates next review date.
-7. **Functional Behavior**: Manages a unified list of words. `user_vocabulary` pivot tracks learned status and SM-2 variables. "Study Mode" introduces new words. "Review Mode" presents only words where `next_review_at <= now()`.
-8. **Validation Rules**: Cannot review a word that hasn't been marked learned.
+7. **Functional Behavior**: Manages a unified list of words. `user_vocabulary` pivot tracks learned status and SM-2 variables. "Study Mode" introduces new words and uses server-side study-session records for idempotency and streak tracking. "Review Mode" presents only words where `next_review_at <= now()` and enforces idempotency via review logs.
+8. **Validation Rules**: Cannot review a word that hasn't been marked learned. Study session must contain at least 5 words to qualify for a streak increment.
 9. **Empty States**: "No words due for review right now."
 10. **Loading States**: Skeleton list for browsing; spinner when grading a review.
 11. **Error States**: "Failed to save review score."

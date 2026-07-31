@@ -2,8 +2,8 @@
 
 > **Document Type:** Product Documentation
 > **Location:** `docs/product/PRODUCT_REQUIREMENTS.md`
-> **Version:** 0.1.0
-> **Last Updated:** 2026-07-30 (Amended: Post-Architectural Review v1)
+> **Version:** 0.1.1
+> **Last Updated:** 2026-07-31 (Amended: Phase 4 Vocabulary)
 > **Status:** Active
 > **Derived From:** [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md)
 
@@ -203,11 +203,12 @@ The following objectives are derived directly from the goals defined in `PROJECT
 | FR-VOC-005 | Study Mode | The system must provide a study mode for reviewing vocabulary words | P1 | In study mode, words are presented one at a time with definition, examples, and navigation controls | FR-VOC-002 |
 | FR-VOC-006 | Mark as Learned | Users must be able to mark a vocabulary word as learned | P2 | A "Mark as Learned" action is available on each word; learned words are tracked per user | FR-VOC-005 |
 | FR-VOC-007 | Vocabulary Quiz | The system must support quiz-based vocabulary practice | P1 | A vocabulary quiz presents multiple-choice or fill-in-the-blank questions generated from the vocabulary database | FR-VOC-001, FR-QENG-001 |
-| FR-VOC-008 | Spaced Repetition Queue | The system must implement a spaced repetition review queue using the SM-2 algorithm | P2 | Words due for review are surfaced based on ease factor, repetition interval, and performance history per the SM-2 schedule. Each word interaction records a quality score (0–5), updated ease factor, interval in days, and next review date. | FR-VOC-006 |
+| FR-VOC-008 | Spaced Repetition Queue | The system must implement a spaced repetition review queue using the SM-2 algorithm | P2 | Words due for review are surfaced based on ease factor, repetition interval, and performance history per the SM-2 schedule. Each word interaction records a quality score (0–5), updated ease factor, interval in days, and next review date. Review logs enforce idempotency per review session. | FR-VOC-006 |
 | FR-VOC-009 | Review Mode | The system must provide a dedicated review mode for spaced repetition vocabulary | P2 | The review session presents only words that are due for review based on the spaced repetition schedule | FR-VOC-008 |
 | FR-VOC-010 | XP for Vocabulary | Completing vocabulary study and quiz sessions awards XP | P2 | Finishing a study session or passing a vocabulary quiz credits the user with defined XP | FR-XP-001 |
 | FR-VOC-011 | Vocabulary Progress | The system must track how many words the user has learned | P2 | The number of learned words and percentage of total vocabulary is tracked and visible in the Progress module | FR-PROGRESS-001 |
 | FR-VOC-012 | Search | Users must be able to search vocabulary by word or definition | P3 | A search input filters the vocabulary list in real time | FR-VOC-001 |
+| FR-VOC-013 | Study Sessions | The system must track active study sessions | P2 | Study sessions are initialized and finalized on the server to prevent duplicate XP or streak events | FR-VOC-005 |
 
 ---
 

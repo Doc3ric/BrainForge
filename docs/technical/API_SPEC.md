@@ -157,8 +157,14 @@ Avatar uploads via `POST /api/v1/profile/avatar`. `multipart/form-data`. Max 2MB
 
 **Learning Modules (M-07, M-08, M-09, M-10, M-11)**
 *   `GET /api/v1/vocabulary`
+*   `GET /api/v1/vocabulary/categories`
+*   `GET /api/v1/vocabulary/progress`
+*   `GET /api/v1/vocabulary/reviews`
+*   `GET /api/v1/vocabulary/{id}`
 *   `POST /api/v1/vocabulary/{id}/learn`
 *   `POST /api/v1/vocabulary/{id}/reviews`
+*   `POST /api/v1/vocabulary/study-sessions`
+*   `PATCH /api/v1/vocabulary/study-sessions/{id}`
 *   `GET /api/v1/grammar`
 *   `POST /api/v1/grammar/{id}/completions`
 *   `GET /api/v1/reading`
@@ -217,14 +223,58 @@ Avatar uploads via `POST /api/v1/profile/avatar`. `multipart/form-data`. Max 2MB
 *   **Query Params**: `?q=`, `?difficulty_id=`, `?category_id=`, `?review_due=true|false`
 *   **Response**: `200 OK` (Paginated Word DTOs + User SM-2 state if known).
 
+#### `GET /api/v1/vocabulary/categories`
+*   **Purpose**: List all active vocabulary categories.
+*   **Auth**: Authenticated
+*   **Response**: `200 OK` Collection of `VocabularyCategoryResource`
+
+#### `GET /api/v1/vocabulary/progress`
+*   **Purpose**: Get the authenticated user's vocabulary progress summary.
+*   **Auth**: Authenticated
+*   **Response**: `200 OK` `VocabularyProgressResource` (total, learned, due_for_review, new)
+
+#### `GET /api/v1/vocabulary/reviews`
+*   **Purpose**: Get the user's SM-2 review queue.
+*   **Auth**: Authenticated
+*   **Query Params**: `limit` (default 20, max 100)
+*   **Response**: `200 OK` Collection of `UserVocabularyResource` ordered by `next_review_at`
+
+#### `GET /api/v1/vocabulary/{id}`
+*   **Purpose**: Get a single word's full details.
+*   **Auth**: Authenticated
+*   **Path Params**: `id` (UUIDv7 of word)
+*   **Response**: `200 OK` `VocabularyWordResource` with `user_vocabulary` state
+
+#### `POST /api/v1/vocabulary/{id}/learn`
+*   **Purpose**: Mark a word as learned for the first time.
+*   **Auth**: Authenticated
+*   **Path Params**: `id` (UUIDv7 of word)
+*   **Response**: `200 OK` (idempotent repeat) or `201 Created` (first time) `UserVocabularyResource`
+*   **Side Effects**: Emits `UserActivityCompleted` (vocab_learned) on first learn
+
 #### `POST /api/v1/vocabulary/{id}/reviews`
 *   **Purpose**: Submit SM-2 grade for a word (BR-SR-001). Creates a review resource.
 *   **Auth**: Authenticated
 *   **Path Params**: `id` (UUIDv7 of word).
-*   **Request Body**: `quality_score` (integer, 0-5, required).
+*   **Request Body**: `idempotency_key` (UUID, required), `quality_score` (integer, 0-5, required).
 *   **Success**: `200 OK` (Returns updated SM-2 ease factor, interval, next review date).
-*   **DB Tables**: `user_vocabulary`.
-*   **Events**: `VocabularyReviewed` (triggers XP/Streak check).
+*   **DB Tables**: `user_vocabulary`, `vocabulary_review_logs`.
+*   **Events**: `UserActivityCompleted(vocab_review_passed)` on quality >= 3.
+
+#### `POST /api/v1/vocabulary/study-sessions`
+*   **Purpose**: Initialize an active study session.
+*   **Auth**: Authenticated
+*   **Response**: `201 Created` with UUIDv7 identifier.
+*   **DB Tables**: `vocabulary_study_sessions`.
+
+#### `PATCH /api/v1/vocabulary/study-sessions/{id}`
+*   **Purpose**: Complete a study session.
+*   **Auth**: Authenticated, Owner Only
+*   **Path Params**: `id` (UUIDv7 of study session)
+*   **Request Body**: `status` (string, must be "completed"), `word_ids` (array of UUIDs)
+*   **Success**: `200 OK`
+*   **DB Tables**: `vocabulary_study_sessions`, `vocabulary_study_session_words`
+*   **Events**: Emits `UserActivityCompleted(vocab_study_session_completed)`
 
 ### 4. Writing & IELTS (M-10, M-11)
 

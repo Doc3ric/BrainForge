@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(StreakIncremented::class, [GamificationOrchestrator::class, 'handleStreakIncremented']);
 
         \Illuminate\Database\Eloquent\Relations\Relation::enforceMorphMap([
-            'vocabulary' => \App\Models\Vocabulary::class ?? 'App\Models\Vocabulary',
+            'vocabulary' => \App\Models\VocabularyWord::class ?? 'App\Models\VocabularyWord',
             'grammar' => \App\Models\Grammar::class ?? 'App\Models\Grammar',
             'reading' => \App\Models\Reading::class ?? 'App\Models\Reading',
             'quiz' => \App\Models\Quiz::class ?? 'App\Models\Quiz',

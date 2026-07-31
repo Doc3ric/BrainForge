@@ -11,7 +11,7 @@ export const DailyGoalWidget = () => {
   
   return (
     <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-      <h3 className="text-sm font-semibold text-slate-400 mb-4">Today's Targets</h3>
+      <h3 className="text-sm font-semibold text-slate-400 mb-4">Today&apos;s Targets</h3>
       
       <div className="space-y-4">
         <div>

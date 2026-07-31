@@ -34,8 +34,17 @@ class GamificationOrchestrator
                 $this->goalService->incrementGoal($event->userId, $event->metadata['goal_metric'], 1);
             }
 
-            // 3. Increment Streak (simplistic increment logic for infrastructure)
-            $this->streakService->incrementStreak($event->userId);
+            // 3. Increment Streak
+            $qualifiesForStreak = true;
+            if ($event->activityType === 'vocab_study_session_completed') {
+                if (($event->metadata['word_count'] ?? 0) < 5) {
+                    $qualifiesForStreak = false;
+                }
+            }
+            
+            if ($qualifiesForStreak) {
+                $this->streakService->incrementStreak($event->userId);
+            }
         });
     }
 

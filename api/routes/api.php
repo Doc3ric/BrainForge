@@ -26,5 +26,20 @@ Route::prefix('v1')->group(function () {
         Route::get('achievements', [\App\Http\Controllers\Gamification\AchievementController::class, 'index']);
         Route::get('progress', [\App\Http\Controllers\Gamification\ProgressController::class, 'index']);
         Route::get('xp/history', [\App\Http\Controllers\Gamification\XpController::class, 'index']);
+
+        // Vocabulary Routes
+        Route::prefix('vocabulary')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vocabulary\VocabularyController::class, 'index']);
+            Route::get('/categories', [\App\Http\Controllers\Vocabulary\VocabularyController::class, 'categories']);
+            Route::get('/progress', [\App\Http\Controllers\Vocabulary\VocabularyProgressController::class, 'index']);
+            Route::get('/reviews', [\App\Http\Controllers\Vocabulary\ReviewController::class, 'index']);
+            Route::get('/{id}', [\App\Http\Controllers\Vocabulary\VocabularyController::class, 'show']);
+            
+            Route::post('/{id}/learn', [\App\Http\Controllers\Vocabulary\StudyController::class, 'learn']);
+            Route::post('/{id}/reviews', [\App\Http\Controllers\Vocabulary\ReviewController::class, 'store']);
+            
+            Route::post('/study-sessions', [\App\Http\Controllers\Vocabulary\StudyController::class, 'startSession']);
+            Route::patch('/study-sessions/{id}', [\App\Http\Controllers\Vocabulary\StudyController::class, 'completeSession']);
+        });
     });
 });

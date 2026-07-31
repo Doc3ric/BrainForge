@@ -1,5 +1,10 @@
 import { apiClient } from '@/lib/api-client';
-import { User } from '@/stores/auth.store';
+export interface User {
+  id: string;
+  display_name: string;
+  email: string;
+  created_at: string;
+}
 
 interface AuthResponse {
   data: User;

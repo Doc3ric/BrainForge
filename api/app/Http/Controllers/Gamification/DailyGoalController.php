@@ -5,19 +5,25 @@ namespace App\Http\Controllers\Gamification;
 use App\Http\Controllers\Controller;
 use App\Models\DailyGoalTracking;
 use App\Http\Resources\Gamification\DailyGoalResource;
+use App\Repositories\Gamification\DailyGoalRepository;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class DailyGoalController extends Controller
 {
+    private DailyGoalRepository $repository;
+
+    public function __construct(DailyGoalRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
         $date = Carbon::now($user->timezone ?? 'UTC')->toDateString();
         
-        $goal = DailyGoalTracking::where('user_id', $user->id)
-            ->where('goal_date', $date)
-            ->first();
+        $goal = $this->repository->findForDate($user->id, $date);
 
         // If no goal tracked for today yet, return a mock default state based on settings
         if (!$goal) {
